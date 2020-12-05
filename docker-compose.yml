@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+  db:
+    build: .
+      dockerfile: ./postgresql/Dockerfile
+    environment:
+      POSTGRES_PASSWORD: "postgres_password"
+      POSTGRES_USER: "postgres_master"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+      dockerfile: ./ruby/Dockerfile
+    environment:
+      RAILS_ENV: "development"
+      POSTGRESQL_USER: "postgres_master"
+      POSTGRESQL_PASSWORD: "postgres_password"
+      POSTGRESQL_HOST: "db"
+    command: "bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/app
+      - bundle_data:/usr/local/bundle
+    ports:
+      - "33000:3000"
+    depends_on:
+      - db
+    links:
+      - db
+    tty: true
+    stdin_open: true
+
+volumes:
+  pg_data:
+  bundle_data:
